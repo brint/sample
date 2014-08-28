@@ -1,0 +1,62 @@
+heat_template_version: 2013-05-23
+
+description: A Heat Template
+
+parameters:
+  flavor:
+    label: Server Size
+    type: string
+    default: OnMetal Compute v1
+
+  image:
+    label: Operating System
+    type: string
+    default: OnMetal - CentOS 7
+
+  server_name:
+    label: Server Hostname
+    type: string
+    default: linux-server
+
+  ssh_keypair_name:
+    type: string
+    default: xu
+
+  ssh_private_key:
+    type: string
+    default: ''
+
+  kitchen:
+    type: string
+    default: https://github.com/brint/sample
+
+resources:
+  linux_server:
+    type: "OS::Nova::Server"
+    properties:
+      key_name: { get_param: ssh_keypair_name }
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      name: { get_param: server_name }
+
+  chef_setup:
+    type: "OS::Heat::ChefSolo"
+    depends_on: linux_server
+    properties:
+      username: root
+      private_key: { get_param: ssh_private_key }
+      host: { get_attr: [linux_server, accessIPv4] }
+      chef_version: 11.14.6
+      kitchen: { get_param: kitchen }
+      node:
+        tomcat:
+          port: 9090
+        run_list: ["recipe[yum]",
+                   "recipe[tomcat]"]
+
+
+
+outputs:
+  server_ip:
+    value: { get_attr: [linux_server, accessIPv4] }
+    description: Server IP
