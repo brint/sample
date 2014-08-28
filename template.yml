@@ -52,7 +52,7 @@ resources:
         tomcat:
           port: 9090
         run_list: ["recipe[yum]",
-                   "recipe[tomcat]"]
+                   "recipe[apache2]"]
 
 
 
